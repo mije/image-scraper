@@ -9,7 +9,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/michaljemala/expn/pkg/worker"
+	"github.com/michaljemala/image-scraper/pkg/worker"
 )
 
 type Downloader struct {

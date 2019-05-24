@@ -1,4 +1,4 @@
-module github.com/michaljemala/expn
+module github.com/michaljemala/image-scraper
 
 go 1.12
 

@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/url"
 
-	"github.com/michaljemala/expn/pkg/downloader"
-	"github.com/michaljemala/expn/pkg/scraper"
+	"github.com/michaljemala/image-scraper/pkg/downloader"
+	"github.com/michaljemala/image-scraper/pkg/scraper"
 )
 
 var (
