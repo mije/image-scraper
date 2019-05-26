@@ -12,7 +12,6 @@ type Task struct {
 
 type PoolOptions func(p *Pool)
 
-
 func WithSize(n int) PoolOptions {
 	return func(p *Pool) {
 		p.size = n
@@ -42,7 +41,7 @@ type Pool struct {
 func NewPool(opts ...PoolOptions) *Pool {
 	p := &Pool{
 		concurrency: runtime.NumCPU(),
-		size: 1<<10,
+		size:        1 << 10,
 	}
 
 	for _, fn := range opts {
@@ -60,9 +59,10 @@ func (p *Pool) Start() {
 		go func() {
 			defer p.wg.Done()
 			for t := range p.tasks {
-				err := t.Fn()
-				if err != nil && p.errorHandler != nil {
-					p.errorHandler(t.Info, err)
+				if err := t.Fn(); err != nil {
+					if p.errorHandler != nil {
+						p.errorHandler(t.Info, err)
+					}
 				}
 			}
 		}()
