@@ -4,22 +4,27 @@ import (
 	"flag"
 	"log"
 	"net/url"
+	"os"
 
 	"github.com/michaljemala/image-scraper/pkg/downloader"
 	"github.com/michaljemala/image-scraper/pkg/scraper"
 )
 
 var (
-	flagURL = flag.String("url", "https://www.google.com", "A website URL to be scraped")
-	flagDir = flag.String("dir", ".", "Destination directory where website assets will be scraped")
+	flagURL = flag.String("url", "https://exponea.com", "A website URL to be scraped")
+	flagDir = flag.String("dir", "./data", "Destination directory where website assets will be scraped")
 )
 
 func main() {
 	flag.Parse()
 
-	URL, err := url.Parse(*flagURL)
+	u, err := url.Parse(*flagURL)
 	if err != nil {
 		log.Fatal("invalid url")
+	}
+
+	if err := os.MkdirAll(*flagDir, os.ModePerm); err != nil {
+		log.Fatal("unable to create dir")
 	}
 
 	d, err := downloader.New(
@@ -30,14 +35,21 @@ func main() {
 		log.Fatal(err)
 	}
 
-	s := scraper.NewScraper()
-	s.RegisterCallback("img[src]", func(e *scraper.HTMLElement) {
-		if url := e.AttrValue("src", true); url != "" {
-			d.Queue(url)
+	s := scraper.NewCustomScraper(scraper.Config{
+		Concurrency: 10,
+	})
+	s.OnHTMLElement("img", func(e *scraper.HTMLElement) {
+		link, ok := e.Attr("src")
+		if !ok {
+			return
+		}
+		link = e.ResolveURL(link)
+		if link != "" {
+			log.Printf("enqueueing: %s", link)
+			d.Queue(link)
 		}
 	})
-	s.Scrape(URL)
+	s.Scrape(u)
 
 	d.Stop()
 }
-

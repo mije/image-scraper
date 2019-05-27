@@ -68,7 +68,7 @@ func (d *Downloader) DestDir() string {
 func (d *Downloader) Queue(url string) {
 	d.pool.Submit(worker.Task{
 		Info: url,
-		Fn: func () error {
+		Fn: func() error {
 			return d.download(url)
 		},
 	})
@@ -96,9 +96,15 @@ func (d *Downloader) download(url string) error {
 
 	resp, err := http.Get(url)
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to get: %s: %v", url, err)
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("invalid status code: %s: %s", url, resp.Status)
+	}
+
+	log.Printf("downloaded: %s", url)
 
 	_, err = io.Copy(out, resp.Body)
 	return err
